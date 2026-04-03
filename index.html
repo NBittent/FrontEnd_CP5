@@ -1,41 +1,812 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Melodia - Music Streaming Platform</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Melodia – Sua Música, Sua Forma</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              neon:   '#C6F135',
+              dark:   '#0A0A0F',
+              mid:    '#111118',
+              card:   '#16161F',
+              border: '#2A2A38',
+              muted:  '#6B6B80',
+              white:  '#F2F2F5',
+            }
+          },
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body:    ['DM Sans', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* ── Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #0A0A0F;
+      color: #F2F2F5;
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Noise texture overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.03;
+    }
+
+    /* ── Animated gradient blob ── */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.18;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .blob-1 { width: 600px; height: 600px; background: #C6F135; top: -180px; right: -180px; animation-delay: 0s; }
+    .blob-2 { width: 400px; height: 400px; background: #4ADE80; bottom: -120px; left: -120px; animation-delay: 3s; }
+    @keyframes drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.1); }
+    }
+
+    /* ── Navbar ── */
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background .4s, backdrop-filter .4s, border-color .4s;
+      border-bottom: 1px solid transparent;
+    }
+    #navbar.scrolled {
+      background: rgba(10,10,15,0.82);
+      backdrop-filter: blur(20px);
+      border-color: #2A2A38;
+    }
+    .nav-logo span { color: #C6F135; }
+
+    /* ── Hero waveform bars ── */
+    .wave-bars { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
+    .wave-bars .bar {
+      width: 4px; border-radius: 2px; background: #C6F135;
+      animation: wave-anim 1s ease-in-out infinite alternate;
+    }
+    .wave-bars .bar:nth-child(1)  { height: 20%; animation-delay: 0s; }
+    .wave-bars .bar:nth-child(2)  { height: 60%; animation-delay: .1s; }
+    .wave-bars .bar:nth-child(3)  { height: 100%; animation-delay: .2s; }
+    .wave-bars .bar:nth-child(4)  { height: 70%; animation-delay: .3s; }
+    .wave-bars .bar:nth-child(5)  { height: 40%; animation-delay: .4s; }
+    .wave-bars .bar:nth-child(6)  { height: 90%; animation-delay: .5s; }
+    .wave-bars .bar:nth-child(7)  { height: 55%; animation-delay: .6s; }
+    .wave-bars .bar:nth-child(8)  { height: 30%; animation-delay: .7s; }
+    .wave-bars .bar:nth-child(9)  { height: 75%; animation-delay: .8s; }
+    .wave-bars .bar:nth-child(10) { height: 45%; animation-delay: .9s; }
+    @keyframes wave-anim {
+      from { transform: scaleY(1); }
+      to   { transform: scaleY(.3); }
+    }
+
+    /* ── Mockup phone ── */
+    .phone-wrap {
+      position: relative;
+      width: 280px; height: 560px;
+      border-radius: 40px;
+      border: 2px solid #2A2A38;
+      background: #16161F;
+      overflow: hidden;
+      box-shadow: 0 0 80px rgba(198,241,53,0.12), 0 40px 80px rgba(0,0,0,0.7);
+    }
+    .phone-notch {
+      width: 100px; height: 28px;
+      background: #0A0A0F;
+      border-radius: 0 0 20px 20px;
+      margin: 0 auto;
+      position: relative; z-index: 2;
+    }
+    .phone-screen { padding: 0 16px 16px; }
+    .player-art {
+      width: 100%; aspect-ratio: 1;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #C6F135 0%, #4ADE80 50%, #2DD4BF 100%);
+      margin-top: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+    }
+    .progress-bar { height: 3px; background: #2A2A38; border-radius: 2px; margin-top: 14px; }
+    .progress-fill { height: 100%; width: 60%; background: #C6F135; border-radius: 2px; }
+
+    /* ── Benefit icon circles ── */
+    .icon-circle {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: #16161F;
+      border: 1px solid #2A2A38;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: #C6F135;
+      transition: background .3s, transform .3s;
+    }
+    .benefit-card:hover .icon-circle {
+      background: #C6F135;
+      color: #0A0A0F;
+      transform: scale(1.08);
+    }
+
+    /* ── Feature cards ── */
+    .feat-card {
+      background: #16161F;
+      border: 1px solid #2A2A38;
+      border-radius: 20px;
+      padding: 2rem;
+      transition: border-color .3s, transform .3s;
+      position: relative; overflow: hidden;
+    }
+    .feat-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(198,241,53,.06) 0%, transparent 60%);
+      opacity: 0; transition: opacity .3s;
+    }
+    .feat-card:hover { border-color: #C6F135; transform: translateY(-4px); }
+    .feat-card:hover::after { opacity: 1; }
+
+    /* ── Testimonial cards ── */
+    .testi-card {
+      background: #16161F;
+      border: 1px solid #2A2A38;
+      border-radius: 20px;
+      padding: 2rem;
+      position: relative;
+    }
+    .testi-card::before {
+      content: '\201C';
+      position: absolute; top: 1rem; left: 1.5rem;
+      font-size: 5rem; line-height: 1;
+      color: #C6F135; opacity: .2;
+      font-family: serif; pointer-events: none;
+    }
+
+    /* ── CTA button ── */
+    .btn-neon {
+      display: inline-flex; align-items: center; gap: .6rem;
+      background: #C6F135; color: #0A0A0F;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+      padding: .9rem 2.2rem; border-radius: 100px;
+      border: none; cursor: pointer;
+      transition: transform .25s, box-shadow .25s;
+      box-shadow: 0 0 0 rgba(198,241,53,0);
+    }
+    .btn-neon:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 0 32px rgba(198,241,53,0.45);
+    }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: .6rem;
+      background: transparent; color: #F2F2F5;
+      font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1rem;
+      padding: .9rem 2.2rem; border-radius: 100px;
+      border: 1px solid #2A2A38; cursor: pointer;
+      transition: border-color .25s, color .25s;
+    }
+    .btn-outline:hover { border-color: #C6F135; color: #C6F135; }
+
+    /* ── Section label ── */
+    .section-label {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(198,241,53,.1);
+      color: #C6F135; font-size: .75rem; font-weight: 600;
+      letter-spacing: .12em; text-transform: uppercase;
+      padding: .4rem 1rem; border-radius: 100px;
+      border: 1px solid rgba(198,241,53,.2);
+    }
+
+    /* ── Input / form ── */
+    .input-dark {
+      background: #16161F; border: 1px solid #2A2A38;
+      color: #F2F2F5; border-radius: 12px;
+      padding: .9rem 1.2rem; width: 100%;
+      font-family: 'DM Sans', sans-serif; font-size: .95rem;
+      outline: none; transition: border-color .25s;
+    }
+    .input-dark:focus { border-color: #C6F135; }
+    .input-dark::placeholder { color: #6B6B80; }
+
+    /* ── Divider line ── */
+    .h-divider { height: 1px; background: #2A2A38; width: 100%; }
+
+    /* ── Stats ── */
+    .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.5rem; color: #C6F135; }
+
+    /* ── Scroll reveal ── */
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Floating badge ── */
+    .float-badge {
+      position: absolute;
+      background: #16161F; border: 1px solid #2A2A38;
+      border-radius: 14px; padding: .6rem 1rem;
+      display: flex; align-items: center; gap: .5rem;
+      font-size: .8rem; font-weight: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      animation: float-bob 3s ease-in-out infinite alternate;
+    }
+    @keyframes float-bob {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-8px); }
+    }
+  </style>
 </head>
+
 <body>
-    <header>
-        <h1>Welcome to Melodia</h1>
-        <nav>
-            <ul>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#about">About Us</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-    <section id="hero">
-        <h2>Stream Your Favorite Music Anytime, Anywhere</h2>
-        <a href="#signup" class="cta-button">Sign Up Now</a>
-    </section>
-    <section id="features">
-        <h2>Features</h2>
-        <ul>
-            <li>High-quality streaming</li>
-            <li>Create your own playlists</li>
-            <li>Discover new artists</li>
+
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<nav id="navbar" aria-label="Navegação principal">
+  <div class="nav-logo font-display font-bold text-xl tracking-tight">
+    Melo<span>dia</span>
+  </div>
+
+  <!-- Desktop links -->
+  <ul class="hidden md:flex items-center gap-8 text-sm text-brand-muted">
+    <li><a href="#beneficios" class="hover:text-brand-white transition-colors">Benefícios</a></li>
+    <li><a href="#funcionalidades" class="hover:text-brand-white transition-colors">Funcionalidades</a></li>
+    <li><a href="#depoimentos" class="hover:text-brand-white transition-colors">Depoimentos</a></li>
+    <li><a href="#contato" class="hover:text-brand-white transition-colors">Contato</a></li>
+  </ul>
+
+  <a href="#contato" class="btn-neon text-sm py-2 px-5">
+    <i class="fa-solid fa-headphones"></i> Começar grátis
+  </a>
+</nav>
+
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section id="hero" class="relative min-h-screen flex items-center overflow-hidden pt-24 pb-20 px-6">
+  <!-- Blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-16 items-center">
+
+    <!-- Left copy -->
+    <div>
+      <div class="section-label mb-6">
+        <i class="fa-solid fa-music text-xs"></i> Música sem limites
+      </div>
+
+      <h1 class="font-display font-extrabold text-5xl md:text-6xl xl:text-7xl leading-[1.05] mb-6">
+        Melodia:<br/>
+        <span class="text-brand-neon">Sua Música,</span><br/>
+        Sua Forma
+      </h1>
+
+      <p class="text-brand-muted text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
+        Descubra novos artistas, crie playlists que falam por você e ouça com qualidade de estúdio — onde estiver.
+      </p>
+
+      <div class="flex flex-wrap gap-4 mb-14">
+        <a href="#contato" class="btn-neon">
+          <i class="fa-solid fa-play"></i> Ouvir Agora
+        </a>
+        <a href="#funcionalidades" class="btn-outline">
+          <i class="fa-solid fa-circle-info"></i> Saiba mais
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="flex flex-wrap gap-10">
+        <div>
+          <div class="stat-num">50M+</div>
+          <div class="text-brand-muted text-sm">faixas disponíveis</div>
+        </div>
+        <div>
+          <div class="stat-num">4.9<i class="fa-solid fa-star text-2xl ml-1"></i></div>
+          <div class="text-brand-muted text-sm">avaliação média</div>
+        </div>
+        <div>
+          <div class="stat-num">2M+</div>
+          <div class="text-brand-muted text-sm">usuários ativos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right mockup -->
+    <div class="flex justify-center relative">
+      <!-- Floating badges -->
+      <div class="float-badge" style="top:10%; left:-5%; animation-delay:.5s;">
+        <i class="fa-solid fa-waveform-lines text-brand-neon"></i>
+        <span>HiFi · 320kbps</span>
+      </div>
+      <div class="float-badge" style="bottom:15%; right:-2%; animation-delay:1.2s;">
+        <i class="fa-solid fa-circle-play text-brand-neon"></i>
+        <span>Tocando agora</span>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="player-art">🎵</div>
+
+          <div class="mt-4">
+            <p class="font-display font-bold text-lg">Nova Madrugada</p>
+            <p class="text-brand-muted text-sm">Luna Souza</p>
+          </div>
+
+          <div class="progress-bar mt-4">
+            <div class="progress-fill"></div>
+          </div>
+          <div class="flex justify-between text-xs text-brand-muted mt-1">
+            <span>1:47</span><span>3:12</span>
+          </div>
+
+          <div class="flex justify-center gap-10 mt-5 text-xl">
+            <i class="fa-solid fa-backward-step text-brand-muted cursor-pointer hover:text-brand-white transition-colors"></i>
+            <div class="w-10 h-10 rounded-full bg-brand-neon flex items-center justify-center text-brand-dark cursor-pointer">
+              <i class="fa-solid fa-pause text-sm"></i>
+            </div>
+            <i class="fa-solid fa-forward-step text-brand-muted cursor-pointer hover:text-brand-white transition-colors"></i>
+          </div>
+
+          <!-- Wave bars -->
+          <div class="flex justify-center mt-6">
+            <div class="wave-bars">
+              <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+              <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+              <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+              <div class="bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     BENEFÍCIOS
+══════════════════════════════════════ -->
+<section id="beneficios" class="py-28 px-6 relative z-10">
+  <div class="max-w-6xl mx-auto">
+
+    <div class="text-center mb-16 reveal">
+      <div class="section-label mb-4 mx-auto w-fit">
+        <i class="fa-solid fa-sparkles text-xs"></i> Por que Melodia?
+      </div>
+      <h2 class="font-display font-extrabold text-4xl md:text-5xl">
+        Tudo que você ama.<br/>
+        <span class="text-brand-neon">Num único lugar.</span>
+      </h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <!-- Benefit 1 -->
+      <div class="benefit-card text-center flex flex-col items-center gap-4 p-6 reveal">
+        <div class="icon-circle">
+          <i class="fa-solid fa-headphones-simple"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg">Som Superior</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Ouça em até 320 kbps com áudio lossless. Cada detalhe da música, exatamente como foi gravado.</p>
+      </div>
+
+      <!-- Benefit 2 -->
+      <div class="benefit-card text-center flex flex-col items-center gap-4 p-6 reveal" style="transition-delay:.1s">
+        <div class="icon-circle">
+          <i class="fa-solid fa-list-music"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg">Playlists Personalizadas</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Nossa IA aprende seu gosto e monta playlists que parecem feitas à mão — só para você.</p>
+      </div>
+
+      <!-- Benefit 3 -->
+      <div class="benefit-card text-center flex flex-col items-center gap-4 p-6 reveal" style="transition-delay:.2s">
+        <div class="icon-circle">
+          <i class="fa-solid fa-binoculars"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg">Descoberta Musical</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Encontre artistas independentes e faixas raras antes de todo mundo. Seu radar musical sempre ligado.</p>
+      </div>
+
+      <!-- Benefit 4 -->
+      <div class="benefit-card text-center flex flex-col items-center gap-4 p-6 reveal" style="transition-delay:.3s">
+        <div class="icon-circle">
+          <i class="fa-solid fa-hand-pointer"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg">Interface Intuitiva</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Design limpo e gestos naturais. Do primeiro acesso em diante, tudo faz sentido imediatamente.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     FUNCIONALIDADES
+══════════════════════════════════════ -->
+<section id="funcionalidades" class="py-28 px-6 relative z-10">
+  <div class="max-w-6xl mx-auto">
+
+    <div class="text-center mb-16 reveal">
+      <div class="section-label mb-4 mx-auto w-fit">
+        <i class="fa-solid fa-layer-group text-xs"></i> Funcionalidades
+      </div>
+      <h2 class="font-display font-extrabold text-4xl md:text-5xl">
+        Feito para quem<br/>
+        <span class="text-brand-neon">vive a música.</span>
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <div class="feat-card reveal">
+        <div class="text-3xl mb-4"><i class="fa-solid fa-waveform-lines text-brand-neon"></i></div>
+        <h3 class="font-display font-bold text-xl mb-2">Áudio HiFi</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Qualidade lossless com suporte a Dolby Atmos. Ouça da forma que o artista imaginou.</p>
+      </div>
+
+      <div class="feat-card reveal" style="transition-delay:.1s">
+        <div class="text-3xl mb-4"><i class="fa-solid fa-robot text-brand-neon"></i></div>
+        <h3 class="font-display font-bold text-xl mb-2">Mix Inteligente com IA</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Algoritmo que entende seu humor e horário para recomendar a trilha sonora perfeita do seu dia.</p>
+      </div>
+
+      <div class="feat-card reveal" style="transition-delay:.2s">
+        <div class="text-3xl mb-4"><i class="fa-solid fa-wifi-slash text-brand-neon"></i></div>
+        <h3 class="font-display font-bold text-xl mb-2">Modo Offline</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Baixe suas playlists e ouça sem internet. Perfeito para viagens, academia ou metrô.</p>
+      </div>
+
+      <div class="feat-card reveal" style="transition-delay:.05s">
+        <div class="text-3xl mb-4"><i class="fa-solid fa-users text-brand-neon"></i></div>
+        <h3 class="font-display font-bold text-xl mb-2">Sessão Coletiva</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Ouça com amigos em tempo real e vote nas próximas músicas. DJ na veia, sem conflito.</p>
+      </div>
+
+      <div class="feat-card reveal" style="transition-delay:.15s">
+        <div class="text-3xl mb-4"><i class="fa-solid fa-microphone-lines text-brand-neon"></i></div>
+        <h3 class="font-display font-bold text-xl mb-2">Letras Sincronizadas</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Letra em tempo real para você cantar junto. Disponível em mais de 40 idiomas.</p>
+      </div>
+
+      <div class="feat-card reveal" style="transition-delay:.25s">
+        <div class="text-3xl mb-4"><i class="fa-solid fa-chart-line text-brand-neon"></i></div>
+        <h3 class="font-display font-bold text-xl mb-2">Seu Replay Anual</h3>
+        <p class="text-brand-muted text-sm leading-relaxed">Estatísticas lindas do que você ouviu no ano. Compartilhe e surpreenda-se com seus números.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     DEMO / VISUAL INTERATIVO
+══════════════════════════════════════ -->
+<section class="py-20 px-6 relative z-10">
+  <div class="max-w-4xl mx-auto">
+    <div class="feat-card text-center reveal" style="padding: 3rem 2rem; background: linear-gradient(135deg, #16161F 0%, #1A1A28 100%);">
+      <div class="section-label mx-auto mb-6 w-fit">
+        <i class="fa-solid fa-play text-xs"></i> Demo interativo
+      </div>
+      <h3 class="font-display font-bold text-3xl md:text-4xl mb-4">Experimente o player</h3>
+      <p class="text-brand-muted mb-8">Clique em play e sinta a qualidade Melodia.</p>
+
+      <!-- Simple interactive player -->
+      <div class="bg-brand-dark rounded-2xl p-6 max-w-sm mx-auto border border-brand-border">
+        <div class="w-full aspect-square max-w-[180px] mx-auto rounded-xl mb-4"
+             style="background: linear-gradient(135deg,#C6F135,#4ADE80,#2DD4BF); display:flex;align-items:center;justify-content:center;font-size:3.5rem;">
+          🎶
+        </div>
+        <p class="font-display font-bold">Cosmos Beat</p>
+        <p class="text-brand-muted text-sm mb-4">Orbital Waves</p>
+
+        <div id="demo-progress" class="progress-bar cursor-pointer mb-1" onclick="seekDemo(event)">
+          <div id="demo-fill" class="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="flex justify-between text-xs text-brand-muted mb-4">
+          <span id="demo-cur">0:00</span><span>3:28</span>
+        </div>
+
+        <div class="flex justify-center gap-8 text-xl">
+          <i class="fa-solid fa-backward-step text-brand-muted cursor-pointer hover:text-brand-white transition-colors" onclick="resetDemo()"></i>
+          <button id="play-btn" onclick="toggleDemo()"
+            class="w-12 h-12 rounded-full bg-brand-neon flex items-center justify-center text-brand-dark cursor-pointer hover:scale-105 transition-transform border-0">
+            <i id="play-icon" class="fa-solid fa-play text-sm"></i>
+          </button>
+          <i class="fa-solid fa-forward-step text-brand-muted cursor-pointer hover:text-brand-white transition-colors" onclick="skipDemo()"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     DEPOIMENTOS
+══════════════════════════════════════ -->
+<section id="depoimentos" class="py-28 px-6 relative z-10">
+  <div class="max-w-6xl mx-auto">
+
+    <div class="text-center mb-16 reveal">
+      <div class="section-label mb-4 mx-auto w-fit">
+        <i class="fa-solid fa-comments text-xs"></i> Depoimentos
+      </div>
+      <h2 class="font-display font-extrabold text-4xl md:text-5xl">
+        Quem usa,<br/>
+        <span class="text-brand-neon">não para.</span>
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <div class="testi-card reveal">
+        <div class="flex items-center gap-3 mb-4 mt-6">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-neon to-green-400 flex items-center justify-center font-display font-bold text-brand-dark">A</div>
+          <div>
+            <p class="font-semibold text-sm">Ana Clara</p>
+            <p class="text-brand-muted text-xs">São Paulo, SP</p>
+          </div>
+          <div class="ml-auto text-brand-neon text-xs">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+        </div>
+        <p class="text-sm text-brand-muted leading-relaxed">"A qualidade de som do Melodia é absurda. Sinto que estou no estúdio com o artista. Nunca mais vou volcar para outro app."</p>
+      </div>
+
+      <div class="testi-card reveal" style="transition-delay:.1s">
+        <div class="flex items-center gap-3 mb-4 mt-6">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center font-display font-bold text-white">R</div>
+          <div>
+            <p class="font-semibold text-sm">Rafael Mendes</p>
+            <p class="text-brand-muted text-xs">Curitiba, PR</p>
+          </div>
+          <div class="ml-auto text-brand-neon text-xs">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+        </div>
+        <p class="text-sm text-brand-muted leading-relaxed">"Descobri três artistas incríveis na primeira semana! A seção de descoberta é genial. Finalmente um app que me apresenta música de verdade."</p>
+      </div>
+
+      <div class="testi-card reveal" style="transition-delay:.2s">
+        <div class="flex items-center gap-3 mb-4 mt-6">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center font-display font-bold text-white">J</div>
+          <div>
+            <p class="font-semibold text-sm">Júlia Ferreira</p>
+            <p class="text-brand-muted text-xs">Recife, PE</p>
+          </div>
+          <div class="ml-auto text-brand-neon text-xs">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+          </div>
+        </div>
+        <p class="text-sm text-brand-muted leading-relaxed">"As playlists personalizadas parecem que alguém me conhece há anos. A IA acertou em cheio meu estilo sem eu precisar configurar nada."</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     CONTATO / EMAIL CAPTURE
+══════════════════════════════════════ -->
+<section id="contato" class="py-28 px-6 relative z-10">
+  <div class="max-w-2xl mx-auto text-center reveal">
+    <div class="section-label mb-6 mx-auto w-fit">
+      <i class="fa-solid fa-envelope text-xs"></i> Fique por dentro
+    </div>
+    <h2 class="font-display font-extrabold text-4xl md:text-5xl mb-4">
+      Comece de graça.<br/>
+      <span class="text-brand-neon">Sempre.</span>
+    </h2>
+    <p class="text-brand-muted mb-10 text-lg">Cadastre seu e-mail e ganhe 3 meses de Melodia Premium sem custo.</p>
+
+    <form id="contact-form" onsubmit="handleForm(event)"
+          class="bg-brand-card border border-brand-border rounded-2xl p-8">
+
+      <div class="grid sm:grid-cols-2 gap-4 mb-4">
+        <div class="text-left">
+          <label class="text-xs text-brand-muted mb-1 block font-medium">Nome</label>
+          <input type="text" placeholder="Seu nome" class="input-dark" required />
+        </div>
+        <div class="text-left">
+          <label class="text-xs text-brand-muted mb-1 block font-medium">Sobrenome</label>
+          <input type="text" placeholder="Sobrenome" class="input-dark" required />
+        </div>
+      </div>
+
+      <div class="mb-4 text-left">
+        <label class="text-xs text-brand-muted mb-1 block font-medium">E-mail</label>
+        <input type="email" placeholder="seu@email.com" class="input-dark" required />
+      </div>
+
+      <div class="mb-6 text-left">
+        <label class="text-xs text-brand-muted mb-1 block font-medium">Gênero musical favorito</label>
+        <select class="input-dark">
+          <option value="" disabled selected style="color:#6B6B80">Selecione...</option>
+          <option>Pop</option>
+          <option>Rock</option>
+          <option>Hip-Hop / Rap</option>
+          <option>Eletrônica</option>
+          <option>Sertanejo</option>
+          <option>MPB / Bossa Nova</option>
+          <option>Jazz / Blues</option>
+          <option>Outro</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-neon w-full justify-center text-base py-4">
+        <i class="fa-solid fa-headphones"></i> Quero meu Premium grátis
+      </button>
+
+      <p class="text-brand-muted text-xs mt-4">Sem cartão de crédito. Cancele quando quiser.</p>
+
+      <!-- Success message (hidden) -->
+      <div id="form-success" class="hidden mt-4 p-4 rounded-xl border border-brand-neon bg-brand-neon/10 text-brand-neon text-sm font-medium">
+        <i class="fa-solid fa-circle-check mr-2"></i> Obrigado! Verifique seu e-mail para começar. 🎵
+      </div>
+    </form>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer class="relative z-10 border-t border-brand-border py-12 px-6">
+  <div class="max-w-6xl mx-auto">
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+      <!-- Brand -->
+      <div>
+        <div class="font-display font-bold text-2xl mb-3">Melo<span class="text-brand-neon">dia</span></div>
+        <p class="text-brand-muted text-sm leading-relaxed">Sua música, do seu jeito. Qualidade, descoberta e personalização em um único aplicativo.</p>
+        <div class="flex gap-4 mt-5 text-brand-muted text-lg">
+          <a href="#" aria-label="Instagram" class="hover:text-brand-neon transition-colors"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="Twitter/X" class="hover:text-brand-neon transition-colors"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" aria-label="TikTok" class="hover:text-brand-neon transition-colors"><i class="fa-brands fa-tiktok"></i></a>
+          <a href="#" aria-label="YouTube" class="hover:text-brand-neon transition-colors"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div>
+        <h4 class="font-display font-bold mb-4 text-sm">Produto</h4>
+        <ul class="space-y-2 text-sm text-brand-muted">
+          <li><a href="#" class="hover:text-brand-white transition-colors">Recursos</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Planos e Preços</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Download</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Blog</a></li>
         </ul>
-    </section>
-    <section id="about">
-        <h2>About Us</h2>
-        <p>Melodia is a music streaming platform dedicated to providing users with a seamless listening experience.</p>
-    </section>
-    <footer>
-        <p>© 2026 Melodia. All Rights Reserved.</p>
-        <p><a href="#contact">Contact Us</a></p>
-    </footer>
+      </div>
+
+      <div>
+        <h4 class="font-display font-bold mb-4 text-sm">Empresa</h4>
+        <ul class="space-y-2 text-sm text-brand-muted">
+          <li><a href="#" class="hover:text-brand-white transition-colors">Sobre nós</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Carreiras</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Imprensa</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Contato</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-display font-bold mb-4 text-sm">Legal</h4>
+        <ul class="space-y-2 text-sm text-brand-muted">
+          <li><a href="#" class="hover:text-brand-white transition-colors">Política de Privacidade</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Termos de Uso</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Cookies</a></li>
+          <li><a href="#" class="hover:text-brand-white transition-colors">Licenças</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="h-divider mb-6"></div>
+
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-brand-muted text-xs">
+      <p>© 2025 Melodia. Todos os direitos reservados.</p>
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-envelope"></i>
+        <a href="mailto:contato@melodia.app" class="hover:text-brand-white transition-colors">contato@melodia.app</a>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+  /* ── Navbar scroll effect ── */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  /* ── Scroll reveal ── */
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => io.observe(el));
+
+  /* ── Demo player ── */
+  let playing = false, pct = 0, interval = null;
+  const totalSec = 208; // 3:28
+
+  function toggleDemo() {
+    playing = !playing;
+    document.getElementById('play-icon').className = playing
+      ? 'fa-solid fa-pause text-sm'
+      : 'fa-solid fa-play text-sm';
+    if (playing) {
+      interval = setInterval(() => {
+        pct += 100 / totalSec;
+        if (pct >= 100) { pct = 0; }
+        updateBar();
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+  }
+
+  function updateBar() {
+    document.getElementById('demo-fill').style.width = pct + '%';
+    const sec = Math.round(pct * totalSec / 100);
+    document.getElementById('demo-cur').textContent =
+      Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2,'0');
+  }
+
+  function resetDemo() { clearInterval(interval); playing = false; pct = 0; updateBar();
+    document.getElementById('play-icon').className = 'fa-solid fa-play text-sm'; }
+
+  function skipDemo() { pct = 0; updateBar(); }
+
+  function seekDemo(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    pct = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+    updateBar();
+  }
+
+  /* ── Form ── */
+  function handleForm(e) {
+    e.preventDefault();
+    document.getElementById('form-success').classList.remove('hidden');
+    e.target.querySelector('button[type=submit]').disabled = true;
+  }
+</script>
+
 </body>
 </html>
+
